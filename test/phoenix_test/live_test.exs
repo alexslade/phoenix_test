@@ -435,6 +435,7 @@ defmodule PhoenixTest.LiveTest do
     test "selects given option for a label", %{conn: conn} do
       conn
       |> visit("/live/index")
+      |> select("Race", option: "Human")
       |> select("Race", option: "Elf")
       |> assert_has("#full-form option[value='elf']")
     end
@@ -444,6 +445,14 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> select("Race", option: "Orc")
       |> assert_has("#full-form option[value='orc']")
+    end
+
+    test "allows selecting more than once", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Race", option: "Elf")
+      |> select("Race", option: "Dwarf")
+      |> assert_has("#full-form option[value='dwarf']")
     end
 
     test "works in 'nested' forms", %{conn: conn} do
@@ -462,11 +471,21 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "race: elf")
     end
 
-    test "works for multiple select", %{conn: conn} do
+    test "works for multiple select in one action", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> select("Race", option: "Elf")
       |> select("Race 2", option: ["Elf", "Dwarf"])
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "[elf, dwarf]")
+    end
+
+    test "works for multiple select in many actions", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Race", option: "Elf")
+      |> select("Race 2", option: "Elf")
+      |> select("Race 2", option: "Dwarf")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "[elf, dwarf]")
     end
